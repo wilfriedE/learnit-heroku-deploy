@@ -46,7 +46,7 @@ def track_gitchanges():
 def pushtoheroku(branch):
     track_gitchanges()
     print("Pushing %s to heroku master" % branch)
-    run_cmd("git push heroku %s:master" % branch)
+    run_cmd("git push -f heroku %s:master" % branch)
     run_cmd("heroku run rake db:migrate")
 
 def cleanup(branch):
@@ -60,6 +60,7 @@ def addh_gemfile():
     with open("Gemfile", "a") as f:
         for line in HGEMFILE:
             f.write(line.decode("utf-8"))
+    run_cmd("bundle install --without production")
 
 def set_heroku_configs():
     if not REPO.remotes["heroku"]:
@@ -70,8 +71,8 @@ def set_heroku_configs():
     for env in LEARN_IT_ENVS:
         env_value = input(env + ": ")
         if env_value:
-            print("Set %s to %s" % env, env_value)
-            run_cmd("heroku config:set %s=%s" % env, env_value)
+            print("Set %s to %s" % (env, env_value))
+            run_cmd("heroku config:set %s=%s" % (env, env_value))
     addh_gemfile()
 
 def setup_heroku(new_app=False):
@@ -100,7 +101,7 @@ def move_to_app():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Deploy to heroku.')
-    parser.add_argument('-d', '--dir',help='Location of git repo to deploy')
+    parser.add_argument('-d', '--dir',help='Location of git repo to deploy', required=True)
     parser.add_argument('-c','--create', help='Create new heroku app to push to', action="store_true")
     args = parser.parse_args()
     APP_DIR = args.dir or "."
